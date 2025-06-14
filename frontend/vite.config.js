@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 1704,
+    https: false,
     proxy: {
       "/api": {
         target: "http://localhost:5000",
@@ -14,10 +15,15 @@ export default defineConfig({
         secure: false,
       },
     },
-    headers: {
-      "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp",
-      "Origin-Agent-Cluster": "?1",
+  },
+  build: {
+    assetsDir: "assets",
+    rollupOptions: {
+      output: {
+        assetFileNames: "assets/[name]-[hash][extname]",
+        chunkFileNames: "assets/[name]-[hash].js",
+        entryFileNames: "assets/[name]-[hash].js",
+      },
     },
   },
 });
