@@ -1,20 +1,20 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
-  // Create transporter
-  const transporter = nodemailer.createTransporter({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false, // true for 465, false for other ports
+  // Create transporter with Gmail SMTP configuration
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    secure: true, // true for 465, false for other ports
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.SMTP_MAIL,
+      pass: process.env.SMTP_PASSWORD,
     },
   });
 
   // Define email options
   const mailOptions = {
-    from: `"School Management System" <${process.env.EMAIL_USER}>`,
+    from: `"School Management System" <${process.env.SMTP_MAIL}>`,
     to: options.email,
     subject: options.subject,
     text: options.message,
@@ -24,6 +24,7 @@ const sendEmail = async (options) => {
   // Send email
   const info = await transporter.sendMail(mailOptions);
   console.log('Message sent: %s', info.messageId);
+  return info;
 };
 
 module.exports = sendEmail; 

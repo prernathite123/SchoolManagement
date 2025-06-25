@@ -4,6 +4,7 @@ import { useAuth } from './hooks/useAuth'
 import Layout from './components/Layout'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
+import VerifyEmail from './pages/auth/VerifyEmail'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import LoadingSpinner from './components/LoadingSpinner'
@@ -44,6 +45,7 @@ function AppRoutes() {
           <Register />
         </PublicRoute>
       } />
+      <Route path="/verify-email/:token" element={<VerifyEmail />} />
       
       {/* Protected Routes */}
       <Route path="/" element={

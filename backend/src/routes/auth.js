@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const {
   register,
+  verifyEmail,
   login,
   getMe,
   logout
@@ -45,8 +46,15 @@ const loginValidation = [
     .withMessage('Password is required')
 ];
 
+const verifyEmailValidation = [
+  body('token')
+    .notEmpty()
+    .withMessage('Verification token is required')
+];
+
 // Routes
 router.post('/register', registerValidation, register);
+router.post('/verify-email', verifyEmailValidation, verifyEmail);
 router.post('/login', loginValidation, login);
 router.get('/me', protect, getMe);
 router.post('/logout', protect, logout);
