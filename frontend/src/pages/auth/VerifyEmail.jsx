@@ -23,11 +23,6 @@ const VerifyEmail = () => {
       setStatus('success');
       setMessage(response.data.message);
       toast.success('Email verified successfully!');
-      
-      // Redirect to login after 3 seconds
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
     } catch (error) {
       setStatus('error');
       setMessage(error.response?.data?.message || 'Email verification failed');
@@ -75,13 +70,13 @@ const VerifyEmail = () => {
             {status === 'success' ? (
               <div className="space-y-4">
                 <p className="text-sm text-gray-500">
-                  Redirecting to login page in 3 seconds...
+                  Your email has been successfully verified!
                 </p>
                 <Link
                   to="/login"
                   className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
                 >
-                  Login Now
+                  Continue to Login
                 </Link>
               </div>
             ) : (

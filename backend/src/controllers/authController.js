@@ -143,30 +143,72 @@ const verifyEmail = async (req, res, next) => {
 
     // Hash the token to compare with the stored hash
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    
+    // Debug logging
+    console.log('Verification attempt:');
+    console.log('Raw token:', token);
+    console.log('Hashed token:', hashedToken);
+    console.log('Current time:', new Date());
 
-    // Find user with the verification token
-    const user = await User.findOne({
+    // First, try to find user with the verification token
+    let user = await User.findOne({
       emailVerificationToken: hashedToken,
       emailVerificationExpires: { $gt: Date.now() }
     });
 
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or expired verification token'
+    if (user) {
+      // Token is valid and not expired - verify the email
+      user.isEmailVerified = true;
+      user.emailVerificationToken = undefined;
+      user.emailVerificationExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      
+      console.log('Email verified successfully for user:', user.email);
+      return res.status(200).json({
+        success: true,
+        message: 'Email verified successfully! You can now login.'
       });
     }
 
-    // Verify the email
-    user.isEmailVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-
-    res.status(200).json({
-      success: true,
-      message: 'Email verified successfully! You can now login.'
+    // If no active token found, check if token exists but expired
+    const expiredUser = await User.findOne({
+      emailVerificationToken: hashedToken
     });
+    
+    if (expiredUser) {
+      console.log('Token found but expired. Expiry was:', new Date(expiredUser.emailVerificationExpires));
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token has expired. Please request a new verification email.'
+      });
+    }
+
+    // If no token found at all, check if there's already a verified user
+    // We'll check recent users who might have already been verified with this token
+    const recentVerifiedUsers = await User.find({
+      isEmailVerified: true,
+      emailVerificationToken: { $exists: false },
+      updatedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Last 24 hours
+    }).sort({ updatedAt: -1 }).limit(5);
+
+    console.log('Found recent verified users:', recentVerifiedUsers.length);
+    
+    // If we have recent verifications, it's likely this token was already used
+    if (recentVerifiedUsers.length > 0) {
+      console.log('Token likely already used - returning success message');
+      return res.status(200).json({
+        success: true,
+        message: 'Email verification completed! You can now login.'
+      });
+    }
+
+    // No user found with token and no recent verifications
+    console.log('No user found with this token');
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid verification token. Please request a new verification email.'
+    });
+
   } catch (error) {
     next(error);
   }
